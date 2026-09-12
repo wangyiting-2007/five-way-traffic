@@ -1,37 +1,21 @@
-# five-way-traffic
+# 多岔路口交通管理（五岔路口）
+## 项目简介
+五岔路口，C、E为单行道，共13条通行路线。
+将交通调度问题抽象为图着色问题：
+1. 每条通行路线作为图顶点
+2. 存在碰撞冲突的路线，建立边（邻接矩阵）
+3. 颜色代表信号灯相位，冲突路线分配不同相位
 
-#### 介绍
-五岔路口交通管理，图着色算法C语言实现
+题目案例：
+E→B（路线7）和A→D（路线2）存在冲突，不能同时放行；
+A→B 和 E→C无冲突，可同时放行。
 
-#### 软件架构
-软件架构说明
+## 算法设计
+使用回溯图着色算法，自动寻找最少信号灯相位。
+邻接矩阵在代码main函数中逐条定义，附带注释，标注每一组冲突路线。
+额外增加独立校验函数，自动验证输出方案，检测是否存在冲突路线同相位。
 
-
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 使用说明
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+## 编译运行
+```bash
+gcc traffic.c -o traffic
+./traffic
