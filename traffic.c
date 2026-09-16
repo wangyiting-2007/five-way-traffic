@@ -72,7 +72,7 @@ bool checkResult(int adj[N_ROUTE][N_ROUTE], int color[])
         {
             if (adj[i][j] && color[i] == color[j])
             {
-                printf("【校验错误】路线 %d 和路线 %d 冲突，被分到同一相位！\n", i, j);
+                printf("Error: Route %d and Route %d conflict, same phase!\n", i, j);
                 return false;
             }
         }
@@ -110,11 +110,11 @@ int main(void)
     int color[N_ROUTE];
     graphColoring(adj, color);
 
-    printf("========五岔路口交通信号灯相位调度结果========\n");
+    printf("=====Traffic Light Phase Result=====\n");
     for(int phase = 0; phase < 20; phase++)
     {
         bool hasRoute = false;
-        printf("【相位%d】: ", phase+1);
+        printf("Phase %d: ", phase+1);
         for(int i=0; i<N_ROUTE; i++)
         {
             if(color[i] == phase+1)
@@ -128,15 +128,14 @@ int main(void)
     }
 
     // 执行结果校验
-    printf("\n====================方案校验====================\n");
+    printf("\n=====Check Result=====\n");
     if(checkResult(adj, color))
     {
-        printf("✅ 校验通过，所有冲突路线相位不同，调度方案合法！\n");
+        printf("Check OK, all conflict routes are in different phases.\n");
     }
     else
     {
-        printf("❌ 校验失败，方案存在冲突！\n");
+        printf("Check Failed, conflict exists!\n");
     }
-    printf("\n说明：同一个相位内的路线可以同时放行绿灯，不会产生碰撞。\n");
     return 0;
 }
