@@ -1,141 +1,200 @@
 #include <stdio.h>
-#include <stdbool.h>
+#include <string.h>
 
-#define N_ROUTE 13   // 总共13条通行路线
+#define N 13
 
-/**
- * @brief 判断路线v分配颜色c是否安全
- * adj：邻接矩阵；v当前路线；color数组；c待分配相位
- */
-bool isSafe(int adj[N_ROUTE][N_ROUTE], int v, int color[], int c)
-{
-    for (int i = 0; i < N_ROUTE; i++)
-    {
-        if (adj[v][i] && color[i] == c)
-        {
-            return false;
-        }
-    }
-    return true;
+typedef struct {
+    int id;
+    char name[10];
+    int degree;
+} Route;
+
+Route nodes[N] = {
+    {0, "A->B", 0},
+    {1, "A->C", 0},
+    {2, "A->D", 0},
+    {3, "B->A", 0},
+    {4, "B->C", 0},
+    {5, "B->D", 0},
+    {6, "D->A", 0},
+    {7, "D->B", 0},
+    {8, "D->C", 0},
+    {9, "E->A", 0},
+    {10, "E->B", 0},
+    {11, "E->C", 0},
+    {12, "E->D", 0}
+};
+
+int adj[N][N] = {0};
+
+void addConflict(int u, int v) {
+    adj[u][v] = 1;
+    adj[v][u] = 1;
 }
 
-/**
- * @brief 回溯图着色
- */
-bool graphColoringHelper(int adj[N_ROUTE][N_ROUTE], int v, int color[], int totalPhase)
-{
-    if (v == N_ROUTE)
-    {
-        return true;
-    }
-    for (int c = 1; c <= totalPhase; c++)
-    {
-        if (isSafe(adj, v, color, c))
-        {
-            color[v] = c;
-            if (graphColoringHelper(adj, v + 1, color, totalPhase))
-            {
-                return true;
-            }
-            color[v] = 0;
-        }
-    }
-    return false;
+void buildGraph() {
+    // 0:AB, 1:AC, 2:AD
+    addConflict(0, 4); addConflict(0, 5); addConflict(0, 6); addConflict(0, 7); addConflict(0, 9); addConflict(0, 10);
+    addConflict(1, 4); addConflict(1, 5); addConflict(1, 6); addConflict(1, 7); addConflict(1, 9); addConflict(1, 10); addConflict(1, 11);
+    addConflict(2, 4); addConflict(2, 5); addConflict(2, 6); addConflict(2, 7); addConflict(2, 9); addConflict(2, 10); addConflict(2, 11);
+
+    // 4:BC, 5:BD
+    addConflict(4, 6); addConflict(4, 7); addConflict(4, 10); addConflict(4, 11);
+    addConflict(5, 6); addConflict(5, 7); addConflict(5, 10); addConflict(5, 11);
+
+    // 9:EA
+    addConflict(9, 6); addConflict(9, 7); addConflict(9, 10); addConflict(9, 11);
+
+    // 6:DA, 7:DB
+    addConflict(6, 10); addConflict(6, 11);
+    addConflict(7, 10); addConflict(7, 11);
 }
 
-/**
- * @brief 寻找最小相位分配
- */
-bool graphColoring(int adj[N_ROUTE][N_ROUTE], int color[])
-{
-    // 从4个相位开始尝试
-    for (int phase = 4; phase <= N_ROUTE; phase++)
-    {
-        for (int i = 0; i < N_ROUTE; i++)
-            color[i] = 0;
-        if (graphColoringHelper(adj, 0, color, phase))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * @brief 校验函数：检查结果是否存在冲突路线同相位
- */
-bool checkResult(int adj[N_ROUTE][N_ROUTE], int color[])
-{
-    for (int i = 0; i < N_ROUTE; i++)
-    {
-        for (int j = 0; j < N_ROUTE; j++)
-        {
-            if (adj[i][j] && color[i] == color[j])
-            {
-                printf("Error: Route %d and Route %d conflict, same phase!\n", i, j);
-                return false;
+void calculateDegrees() {
+    for (int i = 0; i < N; i++) {
+        nodes[i].degree = 0;
+        for (int j = 0; j < N; j++) {
+            if (adj[i][j]) {
+                nodes[i].degree++;
             }
         }
     }
-    return true;
 }
 
-int main(void)
-{
-    // 初始化邻接矩阵全部置0
-    int adj[N_ROUTE][N_ROUTE] = {0};
-
-    // =====完整冲突邻接矩阵=====
-    // 题目示例：E→B(7) 和 A→D(2)冲突
-    adj[7][2] = 1; adj[2][7] = 1;
-    //A出发路线冲突
-    adj[0][3] = 1; adj[3][0] = 1; //A→B 与 A→E冲突
-    adj[0][6] = 1; adj[6][0] = 1; //A→B 与 B→D冲突
-    adj[1][7] = 1; adj[7][1] = 1; //A→C 与 B→E冲突
-    adj[2][4] = 1; adj[4][2] = 1; //A→D 与 B→A冲突
-    adj[2][7] = 1; adj[7][2] = 1; //A→D 与 B→E冲突
-    adj[3][5] = 1; adj[5][3] = 1; //A→E 与 B→C冲突
-    //B出发路线冲突
-    adj[4][10] = 1; adj[10][4] = 1; //B→A 与 C→D冲突
-    adj[5][8] = 1; adj[8][5] = 1; //B→C 与 C→A冲突
-    adj[6][11] = 1; adj[11][6] = 1; //B→D 与 C→E冲突
-    adj[7][8] = 1; adj[8][7] = 1; //B→E 与 C→A冲突
-    //C出发路线冲突
-    adj[8][11] = 1; adj[11][8] = 1; //C→A 与 C→E冲突
-    adj[9][10] = 1; adj[10][9] = 1; //C→B 与 C→D冲突
-    //E→C（索引12）
-    adj[12][4] = 1; adj[4][12] = 1; //E→C 和 B→A冲突
-    adj[12][6] = 1; adj[6][12] = 1; //E→C 和 B→D冲突
-
-    int color[N_ROUTE];
-    graphColoring(adj, color);
-
-    printf("=====Traffic Light Phase Result=====\n");
-    for(int phase = 0; phase < 20; phase++)
-    {
-        bool hasRoute = false;
-        printf("Phase %d: ", phase+1);
-        for(int i=0; i<N_ROUTE; i++)
-        {
-            if(color[i] == phase+1)
-            {
-                printf("%d ",i);
-                hasRoute = true;
+// 冒泡排序：按degree从大到小排序数组sortedNodes
+void sortNodes(int sortedNodes[]) {
+    for (int i = 0; i < N - 1; i++) {
+        for (int j = 0; j < N - i - 1; j++) {
+            int a = sortedNodes[j];
+            int b = sortedNodes[j+1];
+            if (nodes[a].degree < nodes[b].degree) {
+                int tmp = sortedNodes[j];
+                sortedNodes[j] = sortedNodes[j+1];
+                sortedNodes[j+1] = tmp;
             }
         }
-        if(hasRoute)
-            printf("\n");
     }
+}
 
-    // 执行结果校验
-    printf("\n=====Check Result=====\n");
-    if(checkResult(adj, color))
-    {
-        printf("Check OK, all conflict routes are in different phases.\n");
+// 判断node染color是否安全
+int isSafe(int node, int color, int colors[]) {
+    for (int i = 0; i < N; i++) {
+        if (adj[node][i] && colors[i] == color) {
+            return 0;
+        }
     }
+    return 1;
+}
+
+// ==========新增校验函数==========
+void checkResult(int colors[])
+{
+    int valid = 1;
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < N; j++)
+        {
+            if(adj[i][j] && colors[i] == colors[j])
+            {
+                printf("\n[警告]冲突路线 %s 与 %s 被分到同一相位！\n", nodes[i].name, nodes[j].name);
+                valid = 0;
+            }
+        }
+    }
+    if(valid)
+        printf("\n>>>> 校验完成：所有冲突路线相位分配合法 <<<<\n");
     else
-    {
-        printf("Check Failed, conflict exists!\n");
+        printf("\n>>>> 校验完成：发现分配冲突 <<<<\n");
+}
+
+// 回溯函数
+int solve(int idx, int remainingNodes[], int remLen, int numColors, int colors[]) {
+    if (idx == remLen) {
+        return 1;
+    }
+    int node = remainingNodes[idx];
+    for (int c = 1; c <= numColors; c++) {
+        if (isSafe(node, c, colors)) {
+            colors[node] = c;
+            if (solve(idx + 1, remainingNodes, remLen, numColors, colors)) {
+                return 1;
+            }
+            colors[node] = -1;
+        }
+    }
+    return 0;
+}
+
+int main(void) {
+    printf("========== 多岔路口交通管理 - 求解过程 ==========\n");
+    printf("步骤1：构建图模型。将13条路线抽象为节点，冲突关系抽象为边。\n");
+    buildGraph();
+
+    printf("步骤2：计算每个节点的冲突度数，并按度数从大到小排序。\n");
+    calculateDegrees();
+
+    int sortedNodes[N];
+    for (int i = 0; i < N; i++) {
+        sortedNodes[i] = i;
+    }
+    sortNodes(sortedNodes);
+
+    printf("排序后的节点处理顺序（优先处理冲突最多的节点）: ");
+    for (int i = 0; i < N; i++) {
+        printf("%s ", nodes[sortedNodes[i]].name);
+    }
+    printf("\n\n");
+
+    printf("步骤3：开始图着色搜索（采用回溯法寻找最优解）。\n");
+
+    int colors[N];
+    int remainingNodes[N];
+    int remLen = 0;
+    int found = 0;
+
+    for (int numColors = 1; numColors <= 4; numColors++) {
+        // 重置颜色数组
+        for (int i = 0; i < N; i++) {
+            colors[i] = -1;
+        }
+        colors[3] = 0;
+        colors[8] = 0;
+        colors[12] = 0;
+
+        remLen = 0;
+        for (int i = 0; i < N; i++) {
+            int n = sortedNodes[i];
+            if (colors[n] == -1) {
+                remainingNodes[remLen++] = n;
+            }
+        }
+
+        if (solve(0, remainingNodes, remLen, numColors, colors)) {
+            found = 1;
+            break;
+        }
+    }
+
+    if (found) {
+        printf("步骤4：搜索完成！成功找到最少相位分配。\n\n");
+        printf("========== 最终相位分配结果 ==========\n");
+        for (int c = 0; c <= 4; c++) {
+            if (c == 0) {
+                printf("相位 0 (0号色灯 / 常通相位，右转车辆无冲突，常亮):\n");
+            } else {
+                printf("相位 %d (%d号色灯 / 轮转相位):\n", c, c);
+            }
+            for (int i = 0; i < N; i++) {
+                if (colors[i] == c) {
+                    printf("  - %s\n", nodes[i].name);
+                }
+            }
+            printf("-------------------------------------------\n");
+        }
+        // 输出完结果调用校验
+        checkResult(colors);
+    } else {
+        printf("步骤4：搜索失败，未能找到合适的相位分配。\n");
     }
     return 0;
 }
